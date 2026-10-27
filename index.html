@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="no-referrer">
-<title>ติดตามสถานะน้อง · โรงพยาบาลสัตว์พนาลัย</title>
+<title>ติดตามสถานะน้อง · Panalai SMART OR</title>
 <link rel="icon" type="image/png" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
@@ -90,7 +90,7 @@ function draw(d) {
       (d.phone ? `<a class="call" href="tel:${esc(d.phone)}">📞 โทร ${esc(d.phone)}</a>` : '');
     return;
   }
-  document.title = 'น้อง' + d.petName + ' · ' + d.statusLabel;
+  document.title = 'น้อง' + d.petName + ' · ' + d.statusLabel + ' · Panalai SMART OR';
   $('root').innerHTML = `
     <div class="card hero" style="--c:${d.color}">
       <div class="pet">น้อง${esc(d.petName)}</div>
