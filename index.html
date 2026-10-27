@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>ติดตามสถานะน้อง · โรงพยาบาลสัตว์พนาลัย</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<!--
+  หน้าเจ้าของ (ฝากบน GitHub Pages) — ดัดแปลงจาก Track.html
+  ดึงข้อมูลจาก Apps Script ?api=track แบบไม่ส่ง cookie ของ Google
+  จึงเปิดได้แม้ Chrome ล็อกอิน Google หลายบัญชี
+-->
+<style>
+  :root { --bg:#eef6f4; --card:#fff; --ink:#0f2b27; --mute:#6b8580; --line:#dbe8e5; --brand:#0f766e; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:'Sarabun',sans-serif; background:var(--bg); color:var(--ink); font-size:16px; }
+  .wrap { max-width:520px; margin:0 auto; padding:16px 16px 40px; }
+  .brand { text-align:center; color:var(--brand); font-weight:700; padding:8px 0 14px; }
+  .card { background:var(--card); border-radius:20px; padding:18px; margin-bottom:14px; box-shadow:0 4px 16px rgba(15,43,39,.06); }
+  .hero { border-top:6px solid var(--c); }
+  .pet { font-size:26px; font-weight:700; }
+  .sub { color:var(--mute); font-size:14px; margin-top:2px; }
+  .now { margin-top:14px; display:flex; gap:12px; align-items:center; }
+  .dot { width:14px; height:14px; border-radius:50%; background:var(--c); box-shadow:0 0 0 6px color-mix(in srgb, var(--c) 20%, transparent); flex:none; animation:pulse 2s infinite; }
+  .now b { font-size:21px; color:var(--c); display:block; }
+  .now span { font-size:15px; }
+  .late { margin-top:12px; background:#fef2f2; color:#991b1b; border-radius:12px; padding:10px 12px; font-size:15px; }
+  .msg { background:#f0fdfa; border-left:4px solid var(--brand); }
+  .msg .t { font-size:13px; color:var(--mute); margin-bottom:4px; }
+  .photo img { width:100%; border-radius:14px; display:block; }
+  .photo .t { font-size:13px; color:var(--mute); margin-top:8px; text-align:center; }
+  h3 { margin:0 0 12px; font-size:17px; }
+  .steps { list-style:none; margin:0; padding:0; }
+  .steps li { position:relative; padding:0 0 18px 34px; }
+  .steps li::before { content:''; position:absolute; left:9px; top:22px; bottom:0; width:2px; background:var(--line); }
+  .steps li:last-child::before { display:none; }
+  .steps li i { position:absolute; left:0; top:2px; width:20px; height:20px; border-radius:50%; border:2px solid var(--line); background:#fff; font-style:normal; font-size:12px; display:flex; align-items:center; justify-content:center; color:#fff; }
+  .steps li.done i { background:var(--brand); border-color:var(--brand); }
+  .steps li.current i { background:var(--c); border-color:var(--c); }
+  .steps li.todo { color:#a3b6b2; }
+  .steps .lb { font-weight:600; }
+  .steps .tm { font-size:14px; color:var(--brand); font-weight:600; }
+  .eta { display:flex; gap:12px; align-items:center; background:#fffbeb; }
+  .eta b { font-size:22px; display:block; }
+  .eta .t { font-size:13px; color:var(--mute); }
+  .call { display:block; text-align:center; background:var(--brand); color:#fff; text-decoration:none; padding:14px; border-radius:14px; font-weight:700; font-size:17px; }
+  .foot { text-align:center; color:var(--mute); font-size:13px; margin-top:14px; }
+  .center { text-align:center; padding:60px 20px; color:var(--mute); }
+  @keyframes pulse { 50% { opacity:.55; } }
+</style>
+</head>
+<body>
+<div class="wrap" id="root"><div class="center">กำลังโหลดข้อมูล…</div></div>
+
+<script>
+// ลิงก์ /exec ของ web app (deployment เดิม) — ถ้าเปลี่ยน deployment ต้องแก้ตรงนี้
+const API_URL = 'https://script.google.com/macros/s/AKfycbw-1oqWH-aIIkdPcVh2mTjusdl6mCrSv1UiHQOwEqqeZ903aL-5bXdhghHKk6DJoRL5zQ/exec';
+const TOKEN = (new URLSearchParams(location.search).get('t') || '').replace(/[^a-f0-9]/gi, '').slice(0, 64);
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n => String(n).padStart(2, '0');
+// แสดงเวลาไทยเสมอ แม้มือถือเจ้าของตั้งโซนเวลาอื่น
+const bkk = t => new Date(t + 7 * 3600e3);
+const hm = t => { const d = bkk(t); return pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()); };
+const dt = t => { const d = bkk(t); return pad(d.getUTCDate()) + '/' + pad(d.getUTCMonth() + 1) + '/' + (d.getUTCFullYear() + 543) + ' ' + hm(t); };
+let LAST = '', busy = false;
+
+async function load() {
+  if (busy) return;
+  busy = true;
+  try {
+    const res = await fetch(API_URL + '?api=track&t=' + TOKEN, { credentials: 'omit', cache: 'no-store' });
+    draw(await res.json());
+  } catch (e) {
+    if (!LAST) $('root').innerHTML = '<div class="center">เชื่อมต่อไม่ได้ กำลังลองใหม่…</div>';
+  } finally { busy = false; }
+}
+
+function draw(d) {
+  const key = JSON.stringify(Object.assign({}, d, { now: 0 }));
+  if (key === LAST) { const f = document.querySelector('.foot'); if (f) f.textContent = 'อัปเดตอัตโนมัติ · ล่าสุด ' + hm(d.now); return; }
+  LAST = key;
+  if (d.error) {
+    $('root').innerHTML = `<div class="brand">${esc(d.hospital || '')}</div><div class="card center">${esc(d.error)}</div>` +
+      (d.phone ? `<a class="call" href="tel:${esc(d.phone)}">📞 โทร ${esc(d.phone)}</a>` : '');
+    return;
+  }
+  document.title = 'น้อง' + d.petName + ' · ' + d.statusLabel;
+  $('root').innerHTML = `
+    <div class="brand">${esc(d.hospital)}</div>
+    <div class="card hero" style="--c:${d.color}">
+      <div class="pet">น้อง${esc(d.petName)}</div>
+      <div class="sub">รหัส ${esc(d.code)}${d.procedure ? ' · ' + esc(d.procedure) : ''}${d.doctor ? ' · ' + esc(d.doctor) : ''}</div>
+      <div class="now"><div class="dot"></div><div><b>${esc(d.statusLabel)}</b><span>${esc(d.statusText)}</span></div></div>
+      ${d.delayed ? '<div class="late">การผ่าตัดใช้เวลานานกว่าที่คาดไว้เล็กน้อย ทีมหมอยังดูแลน้องอย่างใกล้ชิด หากมีข้อมูลเพิ่มเติมเจ้าหน้าที่จะแจ้งให้ทราบ</div>' : ''}
+    </div>
+    ${d.message ? `<div class="card msg"><div class="t">ข้อความจากทีมหมอ · ${hm(d.messageAt)}</div>${esc(d.message)}</div>` : ''}
+    ${d.photoUrl ? `<div class="card photo"><img src="${esc(d.photoUrl)}" alt="รูปน้อง" referrerpolicy="no-referrer"><div class="t">รูปล่าสุดของน้องจากทีมดูแล</div></div>` : ''}
+    <div class="card" style="--c:${d.color}">
+      <h3>ลำดับการดูแล</h3>
+      <ul class="steps">${d.steps.map(s => `
+        <li class="${s.state}"><i>${s.state === 'done' ? '✓' : ''}</i>
+          <div class="lb">${esc(s.label)}</div>
+          ${s.t ? `<div class="tm">${dt(s.t)}</div>` : ''}
+        </li>`).join('')}</ul>
+    </div>
+    ${d.eta ? `<div class="card eta"><div style="font-size:26px">🕒</div><div><div class="t">เวลาประมาณที่รับน้องกลับได้</div><b>${dt(d.eta)}</b><div class="t">เวลาอาจเปลี่ยนแปลงตามแผนการดูแลของทีมหมอ</div></div></div>` : ''}
+    ${d.phone ? `<a class="call" href="tel:${esc(d.phone)}">📞 สอบถามเคาน์เตอร์ ${esc(d.phone)}</a>` : ''}
+    <div class="foot">อัปเดตอัตโนมัติ · ล่าสุด ${hm(d.now)}</div>`;
+}
+
+if (TOKEN.length < 20) {
+  $('root').innerHTML = '<div class="card center">ไม่พบข้อมูล กรุณาสแกน QR จากบัตรติดตามอีกครั้ง</div>';
+} else {
+  load();
+  setInterval(load, 30000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) load(); });
+}
+</script>
+</body>
+</html>
