@@ -75,6 +75,8 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbw-1oqWH-aIIkdPcVh2mTju
 const TOKEN = (new URLSearchParams(location.search).get('t') || '').replace(/[^a-f0-9]/gi, '').slice(0, 64);
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// "092-239-5447 ต่อ 1" → tel:0922395447,1 (มือถือโทรแล้วกดเบอร์ต่อให้เอง)
+const telHref = p => { const [num, ext] = String(p).split(/ต่อ|ext\.?|#/i); const x = String(ext || '').replace(/\D/g, ''); return 'tel:' + num.replace(/[^\d+]/g, '') + (x ? ',' + x : ''); };
 const pad = n => String(n).padStart(2, '0');
 // แสดงเวลาไทยเสมอ แม้มือถือเจ้าของตั้งโซนเวลาอื่น
 const bkk = t => new Date(t + 7 * 3600e3);
@@ -111,7 +113,7 @@ function draw(d) {
   LAST = key;
   if (d.error) {
     $('root').innerHTML = `<div class="card center">${esc(d.error)}</div>` +
-      (d.phone ? `<a class="call" href="tel:${esc(d.phone)}">📞 โทร ${esc(d.phone)}</a>` : '');
+      (d.phone ? `<a class="call" href="${telHref(d.phone)}">📞 โทร ${esc(d.phone)}</a>` : '');
     return;
   }
   document.title = 'น้อง' + d.petName + ' · ' + d.statusLabel + ' · Panalai SMART OR';
@@ -136,7 +138,7 @@ function draw(d) {
     ${d.eta ? `<div class="card eta"><div class="tile">${ICON.clock}</div><div><div class="t">เวลาประมาณที่รับน้องกลับได้</div><b>${dt(d.eta)}</b><div class="t">เวลาอาจเปลี่ยนแปลงตามแผนการดูแลของทีมหมอ</div></div></div>` : ''}
     ${d.phone ? `<div class="card contact">
       <div class="head"><div class="tile">${ICON.help}</div><div><span>ต้องการสอบถามข้อมูลเพิ่มเติม</span><b>ติดต่อเคาน์เตอร์${esc(d.hospital || '')}</b></div></div>
-      <a class="call" href="tel:${esc(d.phone)}">${ICON.phone} ${esc(d.phone)}</a></div>` : ''}
+      <a class="call" href="${telHref(d.phone)}">${ICON.phone} ${esc(d.phone)}</a></div>` : ''}
     <div class="foot">อัปเดตอัตโนมัติ · ล่าสุด ${hm(d.now)}</div>`;
 }
 
