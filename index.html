@@ -6,6 +6,8 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="no-referrer">
 <title>ติดตามสถานะน้อง · โรงพยาบาลสัตว์พนาลัย</title>
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
 <!--
   หน้าเจ้าของ (ฝากบน GitHub Pages) — ดัดแปลงจาก Track.html
@@ -17,7 +19,8 @@
   * { box-sizing:border-box; }
   body { margin:0; font-family:'Sarabun',sans-serif; background:var(--bg); color:var(--ink); font-size:16px; }
   .wrap { max-width:520px; margin:0 auto; padding:16px 16px 40px; }
-  .brand { text-align:center; color:var(--brand); font-weight:700; padding:8px 0 14px; }
+  .brand { text-align:center; padding:4px 0 14px; }
+  .brand img { width:132px; height:auto; display:block; margin:0 auto; }
   .card { background:var(--card); border-radius:20px; padding:18px; margin-bottom:14px; box-shadow:0 4px 16px rgba(15,43,39,.06); }
   .hero { border-top:6px solid var(--c); }
   .pet { font-size:26px; font-weight:700; }
@@ -52,7 +55,7 @@
 </style>
 </head>
 <body>
-<div class="wrap" id="root"><div class="center">กำลังโหลดข้อมูล…</div></div>
+<div class="wrap"><div class="brand"><img src="logo.png" alt="โรงพยาบาลสัตว์พนาลัย" width="400" height="380"></div><div id="root"><div class="center">กำลังโหลดข้อมูล…</div></div></div>
 
 <script>
 // ลิงก์ /exec ของ web app (deployment เดิม) — ถ้าเปลี่ยน deployment ต้องแก้ตรงนี้
@@ -83,13 +86,12 @@ function draw(d) {
   if (key === LAST) { const f = document.querySelector('.foot'); if (f) f.textContent = 'อัปเดตอัตโนมัติ · ล่าสุด ' + hm(d.now); return; }
   LAST = key;
   if (d.error) {
-    $('root').innerHTML = `<div class="brand">${esc(d.hospital || '')}</div><div class="card center">${esc(d.error)}</div>` +
+    $('root').innerHTML = `<div class="card center">${esc(d.error)}</div>` +
       (d.phone ? `<a class="call" href="tel:${esc(d.phone)}">📞 โทร ${esc(d.phone)}</a>` : '');
     return;
   }
   document.title = 'น้อง' + d.petName + ' · ' + d.statusLabel;
   $('root').innerHTML = `
-    <div class="brand">${esc(d.hospital)}</div>
     <div class="card hero" style="--c:${d.color}">
       <div class="pet">น้อง${esc(d.petName)}</div>
       <div class="sub">รหัส ${esc(d.code)}${d.procedure ? ' · ' + esc(d.procedure) : ''}${d.doctor ? ' · ' + esc(d.doctor) : ''}</div>
