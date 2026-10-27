@@ -30,7 +30,8 @@
   .now b { font-size:21px; color:var(--c); display:block; }
   .now span { font-size:15px; }
   .late { margin-top:12px; background:#fffbeb; color:#92400e; border-radius:12px; padding:10px 12px; font-size:15px; }
-  .msg { background:#f0fdfa; border-left:4px solid var(--brand); }
+  /* ข้อความจากหมออยู่ในการ์ดบนที่เดียว (แทนข้อความอัตโนมัติของสถานะ) */
+  .msg { margin-top:12px; background:#f0fdfa; border-left:4px solid var(--brand); border-radius:12px; padding:10px 12px; font-size:15px; }
   .msg .t { font-size:13px; color:var(--mute); margin-bottom:4px; }
   .photo img { width:100%; border-radius:14px; display:block; }
   .photo .t { font-size:13px; color:var(--mute); margin-top:8px; text-align:center; }
@@ -117,14 +118,16 @@ function draw(d) {
     return;
   }
   document.title = 'น้อง' + d.petName + ' · ' + d.statusLabel + ' · Panalai SMART OR';
+  // ข้อความอัตโนมัติของสถานะซ้ำกับคำอธิบายในไทม์ไลน์ → แสดงเฉพาะสถานะจบ (พร้อมรับกลับ ฯลฯ) และเมื่อไม่มีข้อความจากหมอ
+  const quiet = d.message || d.delayed || d.steps.some(s => s.state === 'current');
   $('root').innerHTML = `
     <div class="card hero" style="--c:${d.color}">
       <div class="pet">น้อง${esc(d.petName)}</div>
       <div class="sub">รหัส ${esc(d.code)}${d.procedure ? ' · ' + esc(d.procedure) : ''}${d.doctor ? ' · ' + esc(d.doctor) : ''}</div>
-      <div class="now"><div class="dot"></div><div><b>${esc(d.statusLabel)}</b><span>${esc(d.statusText)}</span></div></div>
-      ${d.delayed ? '<div class="late">การผ่าตัดใช้เวลานานกว่าที่คาดไว้เล็กน้อย ทีมหมอยังดูแลน้องอย่างใกล้ชิด หากมีข้อมูลเพิ่มเติมเจ้าหน้าที่จะแจ้งให้ทราบ</div>' : ''}
+      <div class="now"><div class="dot"></div><div><b>${esc(d.statusLabel)}</b>${quiet ? '' : `<span>${esc(d.statusText)}</span>`}</div></div>
+      ${d.message ? `<div class="msg"><div class="t">ข้อความจากทีมหมอ · ${hm(d.messageAt)}</div>${esc(d.message)}</div>`
+        : d.delayed ? '<div class="late">การผ่าตัดใช้เวลานานกว่าที่คาดไว้เล็กน้อย ทีมหมอยังดูแลน้องอย่างใกล้ชิด หากมีข้อมูลเพิ่มเติมเจ้าหน้าที่จะแจ้งให้ทราบ</div>' : ''}
     </div>
-    ${d.message ? `<div class="card msg"><div class="t">ข้อความจากทีมหมอ · ${hm(d.messageAt)}</div>${esc(d.message)}</div>` : ''}
     ${d.photoUrl ? `<div class="card photo"><img src="${esc(d.photoUrl)}" alt="รูปน้อง" referrerpolicy="no-referrer"><div class="t">รูปล่าสุดของน้องจากทีมดูแล</div></div>` : ''}
     <div class="card" style="--c:${d.color}">
       <div class="head"><div class="tile">${ICON.list}</div><div><b>ลำดับการดูแล</b><span>วันและเวลาของแต่ละขั้นตอนสำคัญ</span></div></div>
