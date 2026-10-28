@@ -85,12 +85,13 @@ const hm = t => { const d = bkk(t); return pad(d.getUTCHours()) + ':' + pad(d.ge
 const dt = t => { const d = bkk(t); return pad(d.getUTCDate()) + '/' + pad(d.getUTCMonth() + 1) + '/' + (d.getUTCFullYear() + 543) + ' ' + hm(t); };
 let LAST = '', busy = false;
 
-// ไอคอนเส้น (24x24) — คีย์ PRE/OR/POST ตรงกับ OWNER_STEPS ใน Code.gs
+// ไอคอนเส้น (24x24) — คีย์ IN/START/END/RECOVERY ตรงกับ OWNER_STEPS ใน Code.gs
 const svg = p => `<svg viewBox="0 0 24 24" aria-hidden="true">${p}</svg>`;
 const ICON = {
-  PRE: svg('<path d="M9 4h6v3H9z"/><path d="M9 5.5H6V20h12V5.5h-3"/><path d="m9 13.5 2 2 4-4"/>'),
-  OR: svg('<path d="M3 12h4l2-5 4 10 2-5h6"/>'),
-  POST: svg('<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>'),
+  IN: svg('<path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/><path d="M3 12h11"/><path d="m10 8 4 4-4 4"/>'),
+  START: svg('<path d="M20 4 9.5 14.5"/><path d="M9.5 14.5 4 20c2.5 0 5.5-1 7.5-3.5"/><path d="m14 7 3 3"/>'),
+  END: svg('<path d="m5 12.5 4.5 4.5L19 7.5"/>'),
+  RECOVERY: svg('<path d="M4 20h16"/><path d="M6 20V5a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v15"/><path d="M15 8h3v12"/><circle cx="12" cy="12.5" r=".6"/>'),
   list: svg('<path d="M5 7h14M5 12h14M5 17h9"/>'),
   clock: svg('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>'),
   help: svg('<path d="M5 13v-1a7 7 0 0 1 14 0v1"/><rect x="4" y="13" width="4" height="6" rx="1.5"/><rect x="16" y="13" width="4" height="6" rx="1.5"/>'),
